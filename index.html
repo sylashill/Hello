@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#9c4a2f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Okur Defteri</title>
+<link rel="manifest" href="manifest.webmanifest">
+
+<!-- Yazı tipleri: 4 tema (Edebi / Klasik / Modern / Sıcak) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Lora:ital,wght@0,400;0,500;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Quicksand:wght@500;700&family=Nunito:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ ANA SAYFA ============ -->
+  <div class="page active" id="home">
+    <div class="topbar">
+      <button class="icon-btn" onclick="openHomeCustom()" title="özelleştir">🎨</button>
+      <h1>Okur <em>Defteri</em></h1>
+      <button class="icon-btn" onclick="openSettings()">⚙</button>
+    </div>
+    <div class="home-scroll">
+      <div class="home-hero">
+        <div class="gif-frame" onclick="pickHomeGif()">
+          <div class="placeholder" id="gifPlaceholder">
+            <div class="big">✦</div>
+            <strong data-i18n="tapGif">Dokun ve bir GIF seç</strong><br>
+            <small data-i18n="tapGifSub">ana sayfan senin imzan</small>
+          </div>
+          <img id="homeGif" alt="" style="display:none">
+        </div>
+      </div>
+
+      <div class="reyon">
+        <div class="reyon-label"><span data-i18n="lastRead">Son okunan</span></div>
+        <div class="reyon-rail" id="reyonRail"></div>
+      </div>
+
+      <div class="lib-doors">
+        <div class="door books" onclick="go('library')">
+          <span class="em">📚</span>
+          <div class="dt" data-i18n="lib1">Kitaplık</div>
+          <div class="ds" data-i18n="lib1sub">PDF kitapların</div>
+        </div>
+        <div class="door recipes" onclick="go('recipes')">
+          <span class="em">🍲</span>
+          <div class="dt" data-i18n="lib2">Tarifler</div>
+          <div class="ds" data-i18n="lib2sub">mutfak günlüğün</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ KİTAPLIK ============ -->
+  <div class="page" id="library">
+    <div class="topbar">
+      <button class="icon-btn" onclick="go('home')">‹</button>
+      <h1 data-i18n="lib1">Kitaplık</h1>
+      <button class="icon-btn" onclick="pickPdf()">＋</button>
+    </div>
+    <div class="lib-bg">
+      <div class="shelf">
+        <div class="shelf-row" id="bookGrid"></div>
+        <div class="shelf-board"></div>
+      </div>
+      <div class="lib-empty" id="libEmpty" data-i18n="libEmpty">Rafların boş. ＋ ile ilk PDF kitabını ekle.</div>
+    </div>
+  </div>
+
+  <!-- ============ TARİFLER ============ -->
+  <div class="page" id="recipes">
+    <div class="topbar">
+      <button class="icon-btn" onclick="go('home')">‹</button>
+      <h1 data-i18n="lib2">Tarifler</h1>
+    </div>
+    <div class="rec-scroll" id="recList"></div>
+    <button class="fab" onclick="openRecipeEditor()">＋</button>
+  </div>
+
+  <!-- ============ TARİF GÖRÜNTÜLEME ============ -->
+  <div class="page" id="recipeView">
+    <div class="reader-top" style="background:linear-gradient(180deg,rgba(0,0,0,.45),transparent)">
+      <button class="icon-btn" onclick="go('recipes')">‹</button>
+      <div class="rtitle"></div>
+      <button class="icon-btn" onclick="editCurrentRecipe()">✎</button>
+    </div>
+    <div class="rv-scroll" id="rvScroll"></div>
+  </div>
+
+  <!-- ============ OKUYUCU ============ -->
+  <div class="page" id="reader">
+    <div class="reader-top" id="readerTop">
+      <button class="icon-btn" onclick="closeReader()">‹</button>
+      <div class="rtitle" id="readerTitle"></div>
+      <button class="icon-btn" onclick="toggleBookmark()" id="bmBtn">🔖</button>
+      <button class="icon-btn" onclick="openMarks()">✦</button>
+      <button class="icon-btn" onclick="openReadSettings()">Aa</button>
+    </div>
+    <div class="reader-stage" id="readerStage" onclick="toggleReaderChrome()"></div>
+    <div class="reader-bottom" id="readerBottom">
+      <div class="pageinfo" id="pageInfo">—</div>
+      <input type="range" class="slider" id="pageSlider" min="1" max="1" value="1" oninput="sliderJump(this.value)">
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- gizli dosya girişleri -->
+<input type="file" id="gifInput"    class="hidden-input" accept="image/*">
+<input type="file" id="pdfInput"    class="hidden-input" accept="application/pdf">
+<input type="file" id="importInput" class="hidden-input" accept="application/json">
+
+<!-- ============ SCRIM + SHEET'LER ============ -->
+<div class="scrim" id="scrim" onclick="closeSheets()"></div>
+
+<!-- Genel ayarlar -->
+<div class="sheet" id="settingsSheet">
+  <div class="sheet-grip"></div>
+  <h2 data-i18n="settings">Ayarlar</h2>
+  <div class="sub" data-i18n="appearance">Görünüm</div>
+  <div id="settingsBody"></div>
+</div>
+
+<!-- Ana sayfa özelleştir -->
+<div class="sheet" id="homeSheet">
+  <div class="sheet-grip"></div>
+  <h2 data-i18n="homeCustom">Ana Sayfa</h2>
+  <div class="sub" data-i18n="homeCustomSub">arka planı ve gif'i özelleştir</div>
+  <div id="homeBody"></div>
+</div>
+
+<!-- Kitap seçenekleri -->
+<div class="sheet" id="bookSheet">
+  <div class="sheet-grip"></div>
+  <h2 data-i18n="bookOpt">Kitap</h2>
+  <div class="field"><label data-i18n="bookTitle">Başlık</label><input type="text" id="bookTitleInput"></div>
+  <button class="btn" onclick="openBookFromSheet()" data-i18n="readNow">Oku</button>
+  <div class="btn-row">
+    <button class="btn ghost" onclick="saveBookTitle()" data-i18n="save">Kaydet</button>
+    <button class="btn danger" onclick="deleteBook()" data-i18n="delete">Sil</button>
+  </div>
+</div>
+
+<!-- Okuma ayarları -->
+<div class="sheet" id="readSheet">
+  <div class="sheet-grip"></div>
+  <h2 data-i18n="readSettings">Okuma Ayarları</h2>
+  <div id="readBody"></div>
+</div>
+
+<!-- İşaretler -->
+<div class="sheet" id="marksSheet">
+  <div class="sheet-grip"></div>
+  <h2 data-i18n="marks">İşaretler</h2>
+  <div class="sub" data-i18n="marksSub"></div>
+  <div class="seg" style="margin-bottom:16px">
+    <button class="on" id="tabBm" onclick="showMarkTab('bm')" data-i18n="bookmarks">Ayraçlar</button>
+    <button id="tabHl" onclick="showMarkTab('hl')" data-i18n="highlights">Vurgular</button>
+  </div>
+  <div id="bmList"></div>
+  <div id="hlList" style="display:none"></div>
+</div>
+
+<!-- Tarif editörü -->
+<div class="sheet" id="recipeSheet">
+  <div class="sheet-grip"></div>
+  <h2 id="recipeSheetTitle" data-i18n="newRecipe">Yeni Tarif</h2>
+  <div class="sub" data-i18n="newRecipeSub">malzemeler, adımlar, tüyolar ve detaylar</div>
+
+  <div class="field"><label data-i18n="recipeName">Tarif adı</label>
+    <input type="text" id="recName" placeholder="Mercimek Çorbası"></div>
+  <div class="field"><label data-i18n="recipeEmoji">Simge (emoji)</label>
+    <input type="text" id="recEmoji" maxlength="2" placeholder="🍲" style="width:84px;text-align:center;font-size:24px"></div>
+  <div class="field"><label data-i18n="ingredients">Malzemeler (her satıra bir tane)</label>
+    <textarea id="recIngredients" placeholder="2 su bardağı un&#10;1 çay kaşığı tuz&#10;3 yumurta"></textarea></div>
+
+  <label style="font-family:var(--font-display);font-style:italic;font-size:13px;color:var(--ink-soft);margin-bottom:8px;display:block" data-i18n="steps">Adımlar</label>
+  <div id="stepsContainer"></div>
+  <button class="add-step" onclick="addStep()" data-i18n="addStep">＋ Adım ekle</button>
+
+  <div class="field"><label data-i18n="details">Detaylar (notlar, servis, saklama)</label>
+    <textarea id="recDetails" placeholder="Servis ederken üzerine limon sıkın. Buzdolabında 3 gün dayanır..."></textarea></div>
+
+  <button class="btn" onclick="saveRecipe()" data-i18n="saveRecipe">Tarifi Kaydet</button>
+  <div class="btn-row" id="recipeDeleteRow" style="display:none">
+    <button class="btn danger" onclick="deleteRecipe()" data-i18n="delete">Sil</button>
+  </div>
+</div>
+
+<!-- ============ SCRIPT'LER (sıra önemli) ============ -->
+<script src="js/i18n.js"></script>
+<script src="js/db.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/library.js"></script>
+<script src="js/reader.js"></script>
+<script src="js/recipes.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
